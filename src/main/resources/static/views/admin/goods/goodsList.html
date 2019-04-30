@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MyShop商城后台管理系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../../layuiadmin/style/admin.css" media="all">
+</head>
+<body class="layui-layout-body">
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <!--高级查询模块-->
+            </div>
+            <!--表格-->
+            <table id="goods-list" lay-filter="goods-list"></table>
+            <script type="text/html" id="imgTpl">
+                <img style="display: inline-block; width: 50%; height: 100%;" src={{ d.gpicture }}>
+            </script>
+            <script type="text/html" id="table-useradmin-webuser">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+    </div>
+    <!--隐藏模块-->
+    <div class="layui-row" id="popUpdateEmp" style="display:none;">
+        <div class="layui-col-md10">
+            <form class="layui-form" action="" style="margin-top:20px">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">ID</label>
+                        <div class="layui-input-inline">
+                            <input id="id" type="text" name="id" lay-verify="required" readonly autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="gname" name="gname" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入商品名称"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品原价</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="goprice" name="goprice" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入商品原价"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品现价</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="grprice" name="grprice" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入商品现价"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品库存</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="gstore" name="gstore" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入商品原价"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品图片</label>
+                        <div class="layui-input-inline">
+                            <div id="layer-photos-demo" class="layer-photos-demo">
+                                <img src="" id="gpicture" name="gpicture">
+                                <button type="button" class="layui-btn" id="test1">
+                                    <i class="layui-icon">&#xe67c;</i>上传图片
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品类型</label>
+                        <div class="layui-input-inline">
+                            <select name="goodstypeId" lay-filter="required" id="goodstypeId">
+                                <option value="">请选择类型</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="layui-btn" lay-submit lay-filter="updateForm"
+                        style="margin-left: 120px">立即提交
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="../../../layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use('index');
+</script>
+<script>
+    layui.use(['upload', 'table', 'form'], function (exports) {
+        var $ = layui.$, table = layui.table, form = layui.form, upload = layui.upload;
+
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1'
+            ,url: '/admin/uploadImg'
+            ,before: function(obj){
+                //预读本地文件示例，不支持ie8
+                obj.preview(function(index, file, result){
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });
+            }
+            ,done: function(res){
+                //如果上传失败
+                if(res.code > 0){
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+                layer.msg('上传成功！', {time: 1 * 1000});
+            }
+            ,error: function(){
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function(){
+                    uploadInst.upload();
+                });
+            }
+        });
+
+
+        //用户管理
+        table.render({
+            elem: '#goods-list'
+            , url: '/admin/goodsList' //商品接口
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 70, title: 'ID', sort: true}
+                , {field: 'gname', title: '商品名称', width: 150}
+                , {field: 'goprice', title: '商品原价', width: 90}
+                , {field: 'grprice', title: '商品现价', width: 90}
+                , {field: 'gstore', title: '库存', width: 70}
+                , {field: 'gpicture', width: 80, title: '图片', width: 100, templet: '#imgTpl'}
+                , {
+                    field: 'goodstypeId',
+                    width: 100,
+                    templet: '<div>{{d.goodstypeId.typename}}</div>',
+                    title: '商品类型'
+                }
+                , {field: 'iputTime', title: '上架时间', sort: true}
+                , {title: '操作', width: 150, align: 'center', fixed: 'right', toolbar: '#table-useradmin-webuser'}
+            ]]
+            , page: true
+            , limit: 10
+            , height: 'full-220'
+            , text: '对不起，加载出现异常！'
+        });
+        //动态加载商品类型
+        $.ajax({
+            url: '/admin/goodstype/list',
+            type: 'POST',
+            dataType: 'json',
+            success: function (result) {
+                var list = result;
+                for (var i = 0; i < list.length; i++) {
+                    //追加option
+                    $("#goodstypeId").append("<option value=" + list[i].id + ">" + list[i].typename + "</option>");
+                    //渲染刷新
+                    form.render('select');
+                }
+            },
+
+        });
+        //监听行工具事件
+        table.on('tool(goods-list)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('真的删除员工\t' + data.gname + "\t吗！", function (index) {
+
+                    //异步像服务器发送删除请求
+                    $.ajax({
+                        url: '/admin/goods/del',
+                        type: 'GET',
+                        data: {'id': data.id},
+                        success: function (result) {
+                            if (result == "success") {
+                                layer.msg("删除成功!" + result, {icon: 6});
+                                obj.del();
+                                layer.close(index);
+
+                            } else {
+                                layer.msg("删除失败!" + result, {icon: 5});
+                                layer.close(index);
+                            }
+                        },
+                        error: function (errorMsg) {
+                            layer.msg("数据异常!" + errorMsg, {icon: 5});
+                            layer.close(index);
+                            location.reload();
+                        },
+                    });
+                });
+                //更新用户
+            } else if (obj.event == 'edit') {
+                layer.open({
+                    type: 1,
+                    title: "更新用户",
+                    area: ['480px', '510px'],
+                    content: $("#popUpdateEmp"),
+                    success: function () {
+                        //回显数据
+                        $("#id").val(data.id);
+                        $("#gname").val(data.gname);
+                        $("#goprice").val(data.goprice);
+                        $("#grprice").val(data.grprice);
+                        $("#gstore").val(data.gstore);
+                    },
+                });
+            }
+        });
+        //更新操作
+        form.on('submit(updateForm)', function (data) {
+            console.log(data);
+            //发送ajax请求
+            $.ajax({
+                url: '/admin/goods/update',
+                data: JSON.stringify(data.field),
+                type: 'POST',
+                contentType: 'application/json',  //数据类型格式
+                success: function (result) {
+                    if (result == "success") {
+                        layer.closeAll();
+                        layer.msg('更新成功', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    } else {
+                        layer.closeAll();
+                        layer.msg('更新失败', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    }
+                },
+                error: function (errorMsg) {
+                    alert("数据异常！" + errorMsg);
+                    location.reload();
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

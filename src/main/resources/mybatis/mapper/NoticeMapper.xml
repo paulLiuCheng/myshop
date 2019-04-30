@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jacklin.myshop.mapper.NoticeMapper">
+  <resultMap id="BaseResultMap" type="com.jacklin.myshop.entity.Notice">
+    <id column="id" property="id" />
+    <result column="ntitle" property="ntitle" />
+    <result column="ncontent" property="ncontent" />
+    <result column="ntime" property="ntime" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey">
+    delete from `tb_notice`
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into `tb_notice` (ntitle, ncontent, ntime)
+    values (#{ntitle}, #{ncontent}, #{ntime})
+  </insert>
+  <update id="updateByPrimaryKey">
+    update `tb_notice`
+    set ntitle = #{ntitle},
+      ncontent = #{ncontent},
+      ntime = #{ntime}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, ntitle, ncontent, ntime
+    from `tb_notice`
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, ntitle, ncontent, ntime
+    from `tb_notice`
+  </select>
+  <select id="count" resultType="int">
+    select count(*) from tb_notice
+  </select>
+</mapper>

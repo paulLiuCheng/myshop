@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jacklin.myshop.mapper.AdminUserMapper">
+    <resultMap id="BaseResultMap" type="com.jacklin.myshop.entity.AdminUser">
+        <id column="id" property="id"/>
+        <result column="ausername" property="ausername"/>
+        <result column="apassword" property="apassword"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+    delete from `tb_adminuser`
+    where id = #{id}
+  </delete>
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into `tb_adminuser` (ausername, apassword)
+    values (#{ausername}, #{apassword})
+  </insert>
+    <update id="updateByPrimaryKey">
+    update `tb_adminuser`
+    set ausername = #{ausername},
+      apassword = #{apassword}
+    where id = #{id}
+  </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, ausername, apassword
+    from `tb_adminuser`
+    where id = #{id}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select id, ausername, apassword
+    from `tb_adminuser`
+  </select>
+    <select id="selectByUser" resultMap="BaseResultMap">
+         select id, ausername, apassword
+      from `tb_adminuser`
+    where ausername = #{ausername} and apassword=#{apassword}
+    </select>
+</mapper>

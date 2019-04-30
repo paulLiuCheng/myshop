@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jacklin.myshop.mapper.GoodsMapper">
+  <resultMap id="BaseResultMap" type="com.jacklin.myshop.entity.Goods">
+    <id column="id" property="id" />
+    <result column="gname" property="gname" />
+    <result column="goprice" property="goprice" />
+    <result column="grprice" property="grprice" />
+    <result column="gstore" property="gstore" />
+    <result column="gpicture" property="gpicture" />
+    <result column="iputtime" property="iputTime" />
+    <!--内联映射-->
+    <association property="goodstypeId" column="goodstype_id" javaType="com.jacklin.myshop.entity.GoodsType">
+      <id property="id" column="id"/>
+      <result property="typename" column="typename"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey">
+    delete from `tb_goods`
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into `tb_goods` (gname, goprice, grprice, gstore, gpicture, goodstype_id,
+      iputtime)
+    values (#{gname}, #{goprice}, #{grprice}, #{gstore}, #{gpicture}, #{goodstypeId.id},
+      #{iputTime})
+  </insert>
+  <update id="updateByPrimaryKey">
+    update `tb_goods`
+    set gname = #{gname},
+      goprice = #{goprice},
+      grprice = #{grprice},
+      gstore = #{gstore},
+      gpicture = #{gpicture},
+      goodstype_id = #{goodstypeId.id} ,
+      iputtime = #{iputTime}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+     SELECT
+      g.id,
+      g.gname,
+      g.goprice,
+      g.grprice,
+      g.gstore,
+      g.gpicture,
+      gt.id AS goodstype_id,
+      g.iputtime,
+      gt.typename
+  FROM
+      tb_goods g
+      JOIN tb_goodstype gt ON g.goodstype_id = gt.id WHEN g.id=#{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+       SELECT
+        g.id,
+        g.gname,
+        g.goprice,
+        g.grprice,
+        g.gstore,
+        g.gpicture,
+        gt.id AS goodstype_id,
+        g.iputtime,
+        gt.typename
+    FROM
+        tb_goods g
+        JOIN tb_goodstype gt ON g.goodstype_id = gt.id
+  </select>
+    <select id="count" resultType="int">
+      select count(*) from tb_goods
+    </select>
+</mapper>

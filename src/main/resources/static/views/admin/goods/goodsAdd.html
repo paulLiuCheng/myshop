@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+<link rel="stylesheet" href="../../../layuiadmin/style/admin.css" media="all">
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>商品添加</legend>
+</fieldset>
+<form class="layui-form" method="post">
+    <div style="padding: 20px; background-color: #F2F2F2;">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">商品添加</div>
+                    <div class="layui-card-body">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="gname" name="gname" lay-verify="required" autocomplete="off"
+                                           placeholder="请输入商品名称"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品原价</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="goprice" name="goprice" lay-verify="required"
+                                           autocomplete="off"
+                                           placeholder="请输入商品原价"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品现价</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="grprice" name="grprice" lay-verify="required"
+                                           autocomplete="off"
+                                           placeholder="请输入商品现价"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品库存</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="gstore" name="gstore" lay-verify="required"
+                                           autocomplete="off"
+                                           placeholder="请输入商品原价"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品图片</label>
+                                <div class="layui-input-inline">
+                                    <div id="layer-photos-demo" class="layer-photos-demo">
+                                        <button type="button" class="layui-btn" id="uploadFile">
+                                            <i class="layui-icon">&#xe67c;</i>上传图片
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-inline"></div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品类型</label>
+                                <div class="layui-input-inline">
+                                    <select name="goodstypeId" lay-filter="required" id="goodstypeId">
+                                        <option value="">请选择类型</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="layui-btn" lay-submit lay-filter="updateForm"
+                                style="margin-left: 120px">立即提交
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script src="../../../layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use('index');
+</script>
+<script>
+    layui.use(['upload', 'table', 'form'], function (exports) {
+        var $ = layui.$, table = layui.table, form = layui.form, upload = layui.upload;
+
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#uploadFile'
+            ,url: '/admin/uploadImg'
+            ,before: function(obj){
+                //预读本地文件示例，不支持ie8
+                obj.preview(function(index, file, result){
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });
+            }
+            ,done: function(res){
+                //如果上传失败
+                if(res.code > 0){
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+                layer.msg('上传成功！', {time: 1 * 1000});
+            }
+            ,error: function(){
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function(){
+                    uploadInst.upload();
+                });
+            }
+        });
+
+        //动态加载商品类型
+        $.ajax({
+            url: '/admin/goodstype/list',
+            type: 'POST',
+            dataType: 'json',
+            success: function (result) {
+                var list = result;
+                for (var i = 0; i < list.length; i++) {
+                    //追加option
+                    $("#goodstypeId").append("<option value=" + list[i].id + ">" + list[i].typename + "</option>");
+                    //渲染刷新
+                    form.render('select');
+                }
+            },
+
+        });
+
+        //添加操作
+        form.on('submit(updateForm)', function (data) {
+            console.log(data);
+            //发送ajax请求
+            $.ajax({
+                url: '/admin/goods/add',
+                data: JSON.stringify(data.field),
+                type: 'POST',
+                contentType: 'application/json',  //数据类型格式
+                success: function (result) {
+                    if (result == "success") {
+                        layer.closeAll();
+                        layer.msg('添加成功', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    } else {
+                        layer.closeAll();
+                        layer.msg('添加失败', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    }
+                },
+                error: function (errorMsg) {
+                    alert("数据异常！" + errorMsg);
+                    location.reload();
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

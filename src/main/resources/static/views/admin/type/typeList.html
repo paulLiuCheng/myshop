@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MyShop商城后台管理系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../../layuiadmin/style/admin.css" media="all">
+</head>
+<body class="layui-layout-body">
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <!--高级查询模块-->
+            </div>
+            <!--表格-->
+            <table id="goods-list" lay-filter="goods-list"></table>
+            <script type="text/html" id="table-useradmin-webuser">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+    </div>
+    <!--隐藏模块-->
+    <div class="layui-row" id="popUpdateEmp" style="display:none;">
+        <div class="layui-col-md10">
+            <form class="layui-form" action="" style="margin-top:20px">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">类型ID</label>
+                        <div class="layui-input-inline">
+                            <input id="id" type="text" name="id" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品类型名</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="typename" name="typename" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <button class="layui-btn" lay-submit lay-filter="updateType"
+                        style="margin-left: 120px">立即提交
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="../../../layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use('index');
+</script>
+<script>
+    layui.use(['table', 'form'], function (exports) {
+        var $ = layui.$, table = layui.table, form = layui.form;
+
+        //用户管理
+        table.render({
+            elem: '#goods-list'
+            , url: '/admin/goodstype/tableList' //商品接口
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 100, title: '类型ID', sort: true}
+                , {field: 'typename', title: '商品类型名',}
+                , {title: '操作', width: 150, align: 'center', fixed: 'right', toolbar: '#table-useradmin-webuser'}
+            ]]
+            , page: true
+            , limit: 10
+            , height: 'full-220'
+            , text: '对不起，加载出现异常！'
+        });
+
+        //监听行工具事件
+        table.on('tool(goods-list)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('真的删除吗！', function (index) {
+
+                    //异步像服务器发送删除请求
+                    $.ajax({
+                        url: '/admin/goodsType/del',
+                        type: 'GET',
+                        data: {'id': data.id},
+                        success: function (result) {
+                            if (result == "success") {
+                                layer.msg("删除成功!" + result, {icon: 6});
+                                obj.del();
+                                layer.close(index);
+
+                            } else {
+                                layer.msg("删除失败!" + result, {icon: 5});
+                                layer.close(index);
+                            }
+                        },
+                        error: function (errorMsg) {
+                            layer.msg("数据异常!" + errorMsg, {icon: 5});
+                            layer.close(index);
+                            location.reload();
+                        },
+                    });
+                });
+                //更新用户
+            } else if (obj.event == 'edit') {
+                layer.open({
+                    type: 1,
+                    title: "更新用户",
+                    area: ['480px', '510px'],
+                    content: $("#popUpdateEmp"),
+                    success: function () {
+                        //回显数据
+                        $("#id").val(data.id);
+                        $("#typename").val(data.typename);
+                    },
+                });
+            }
+        });
+        //更新操作
+        form.on('submit(updateType)', function (data) {
+            console.log(data);
+            //发送ajax请求
+            $.ajax({
+                url: '/admin/goodsType/update',
+                data: JSON.stringify(data.field),
+                type: 'POST',
+                contentType: 'application/json',  //数据类型格式
+                success: function (result) {
+                    if (result == "success") {
+                        layer.closeAll();
+                        layer.msg('更新成功', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    } else {
+                        layer.closeAll();
+                        layer.msg('更新失败', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    }
+                },
+                error: function (errorMsg) {
+                    alert("数据异常！" + errorMsg);
+                    location.reload();
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

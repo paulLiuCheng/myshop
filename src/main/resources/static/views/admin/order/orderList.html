@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MyShop商城后台管理系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../../layuiadmin/style/admin.css" media="all">
+</head>
+<body class="layui-layout-body">
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <!--高级查询模块-->
+            </div>
+            <!--表格-->
+            <table id="order-list" lay-filter="order-list"></table>
+            <script type="text/html" id="buttonTpl">
+                {{#  if(d.status == 1){ }}
+                <button class="layui-btn layui-btn-xs">已付款</button>
+                {{#  } else { }}
+                <button class="layui-btn layui-btn-primary layui-btn-xs">未付款</button>
+                {{#  } }}
+            </script>
+            <script type="text/html" id="table-useradmin-webuser">
+                <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">
+                    <i class="layui-icon layui-icon-edit"></i>详情</a>
+
+                {{#  if(d.status == 1){ }}
+                <a class="layui-btn layui-btn-disabled layui-btn-xs">
+                    <i class="layui-icon layui-icon-delete"></i>删除</a>
+                {{#  } else { }}
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">
+                    <i class="layui-icon layui-icon-delete"></i>删除</a>
+                {{#  } }}
+            </script>
+        </div>
+    </div>
+    <!--隐藏模块-->
+    <div class="layui-row" id="popUpdateEmp" style="display:none;">
+        <div class="layui-col-md10">
+            <form class="layui-form" action="" style="margin-top:20px">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">订单ID</label>
+                        <div class="layui-input-inline">
+                            <input id="id" type="text" name="id" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">商品总额</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="amount" name="amount" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">支付状态</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="status" name="status" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">下单时间</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="orderdate" name="orderdate" lay-verify="required" autocomplete="off"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <button class="layui-btn" lay-submit lay-filter="updateForm"
+                        style="margin-left: 120px">关闭
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="../../../layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use('index');
+</script>
+<script>
+    layui.use(['table', 'form'], function (exports) {
+        var $ = layui.$, table = layui.table, form = layui.form;
+
+        table.render({
+            elem: '#order-list'
+            , url: '/admin/order/list' //商品接口
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 150, title: '订单ID', sort: true}
+                , {field: 'user_id', title: '用户名', templet: '<div>{{d.user_id.username}}</div>', width: 170}
+                , {field: 'amount', title: '总额(元)', width: 150}
+                , {field: 'status', title: '支付状态', align: 'center', width: 200, templet: '#buttonTpl'}
+                , {field: 'orderdate', title: '下单时间', width: 210, sort: true}
+                , {title: '操作', width: 320, align: 'center', fixed: 'right', toolbar: '#table-useradmin-webuser'}
+            ]]
+            , page: true
+            , limit: 10
+            , height: 'full-220'
+            , text: '对不起，加载出现异常！'
+        });
+        //监听行工具事件
+        table.on('tool(order-list)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('真的删除\t' + data.id + "\t订单吗！", function (index) {
+
+                    //异步像服务器发送删除请求
+                    $.ajax({
+                        url: '/admin/order/del',
+                        type: 'GET',
+                        data: {'id': data.id},
+                        success: function (result) {
+                            if (result == "success") {
+                                layer.msg("删除成功!" + result, {icon: 6});
+                                obj.del();
+                                layer.close(index);
+                            } else {
+                                layer.msg("删除失败!" + result, {icon: 5});
+                                layer.close(index);
+                            }
+                        },
+                        error: function (errorMsg) {
+                            layer.msg("数据异常!" + errorMsg, {icon: 5});
+                            layer.close(index);
+                            location.reload();
+                        },
+                    });
+                });
+            } else if (obj.event == 'edit') {
+                layer.open({
+                    type: 1,
+                    title: "订单详细",
+                    area: ['480px', '510px'],
+                    content: $("#popUpdateEmp"),
+                    success: function () {
+                        //回显数据
+                        $("#id").val(data.id);
+                        $("#amount").val(data.amount);
+                        $("#status").val(data.status);
+                        $("#orderdate").val(data.orderdate);
+                    },
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

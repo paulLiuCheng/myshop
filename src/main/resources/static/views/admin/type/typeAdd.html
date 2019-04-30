@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../../layuiadmin/style/admin.css" media="all">
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <div class="layui-col-md10">
+                    <form class="layui-form" action="" style="margin-top:20px">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品类型ID</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="id" name="id" lay-verify="required"
+                                           autocomplete="off" placeholder="请输入商品类型ID" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">商品类型名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="typename" name="typename" lay-verify="required"
+                                           autocomplete="off" placeholder="请输入商品类型名称" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="layui-btn" lay-submit lay-filter="updateSave"
+                                style="margin-left: 120px">立即保存
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../../../layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use('index');
+</script>
+<script>
+    layui.use(['form'], function (exports) {
+        var $ = layui.$, form = layui.form;
+
+        //更新操作
+        form.on('submit(updateSave)', function (data) {
+            console.log(data);
+            //发送ajax请求
+            $.ajax({
+                url: '/admin/goodsType/save',
+                data: JSON.stringify(data.field),
+                type: 'POST',
+                contentType: 'application/json',  //数据类型格式
+                success: function (result) {
+                    if (result == "success") {
+                        layer.closeAll();
+                        layer.msg('更新成功', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    } else {
+                        layer.closeAll();
+                        layer.msg('更新失败', {time: 1 * 1000}, function () {
+                            location.reload();
+                        });
+                    }
+                },
+                error: function (errorMsg) {
+                    alert("数据异常！" + errorMsg);
+                    location.reload();
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
